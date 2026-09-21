@@ -1,15 +1,17 @@
 import { Route, Switch } from "wouter";
 import Index from "./pages/index";
+import Admin from "./pages/admin";
 import { Provider } from "./components/provider";
-import { AgentFeedback } from "@runablehq/website-runtime";
+import { useDraftPreview } from "./lib/content";
 
 function App() {
+  useDraftPreview();
   return (
     <Provider>
       <Switch>
         <Route path="/" component={Index} />
+        <Route path="/admin" component={Admin} />
       </Switch>
-      {import.meta.env.DEV && <AgentFeedback />}
     </Provider>
   );
 }

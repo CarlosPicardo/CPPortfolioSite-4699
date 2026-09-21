@@ -1,0 +1,12 @@
+.git
+.github
+.env
+.env.*
+!.env.template
+node_modules
+**/node_modules
+**/dist
+**/dist-electron
+**/.turbo
+coverage
+.DS_Store

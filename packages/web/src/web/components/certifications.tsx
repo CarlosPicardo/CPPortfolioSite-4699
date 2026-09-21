@@ -1,41 +1,26 @@
 import { AnimatedSection } from "./animated-section";
+import { useContent } from "../lib/content";
+import { CERTS_DEFAULT } from "../content/defaults";
 
-const certs = [
-  {
-    name: "AVID Pro Tools",
-    detail: "(110) Specialist Certified",
-    icon: "🎛️",
-    hasImage: true,
-  },
-  {
-    name: "MIDAS",
-    detail: "Pro Series Operator",
-    icon: "🎚️",
-    hasImage: false,
-  },
-  {
-    name: "Ableton",
-    detail: "Certified",
-    icon: "🎹",
-    hasImage: false,
-  },
-  {
-    name: "Steinberg",
-    detail: "Certified",
-    icon: "🎵",
-    hasImage: false,
-  },
-  {
-    name: "DigiCo",
-    detail: "Certified",
-    icon: "🔊",
-    hasImage: false,
-  },
-];
+const ICONS = ["🎛️", "🎚️", "🎹", "🎵", "🔊"];
 
 export function Certifications() {
+  const { data: c = CERTS_DEFAULT } = useContent("certifications", CERTS_DEFAULT);
+  const certs = c.items
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, i) => {
+      const [name, detail = ""] = line.split("|").map((s) => s.trim());
+      return {
+        name,
+        detail,
+        icon: ICONS[i % ICONS.length],
+        hasImage: /avid|pro tools/i.test(name),
+      };
+    });
   return (
-    <section id="certs" className="py-32 relative">
+    <section id="certs" className="py-20 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent" />
 
       <div className="max-w-[1200px] mx-auto px-6 relative z-10">
@@ -44,7 +29,7 @@ export function Certifications() {
             className="text-primary text-sm uppercase tracking-[0.3em] mb-4"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            Credentials
+            {c.eyebrow}
           </p>
         </AnimatedSection>
 
@@ -53,7 +38,7 @@ export function Certifications() {
             className="text-4xl md:text-5xl font-bold mb-16 leading-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Certifications
+            {c.heading}
           </h2>
         </AnimatedSection>
 

@@ -1,65 +1,57 @@
-# sandbox-app-template
+# Carlos Picardo Portfolio
 
-Monorepo: Bun workspaces + Turborepo.
+The source of truth for `carlospicardo.com`.
 
-## Project Structure
+The website is a Bun monorepo. `packages/web` contains the public React/Vite site, the `/admin` editor, and the Hono API. The production server serves the built frontend and API from one process.
 
-```
-.env                         Secrets (gitignored), loaded via Vite's loadEnv
-packages/
-  web/                       Unified server (API + web frontend via Vite)
-    vite.config.ts           Vite 7 config — loads .env, sets port, registers plugins
-    index.html               Frontend HTML entry
-    vite/plugins/
-      hono-dev-plugin.ts     Intercepts /api/* in dev, forwards to Hono via SSR
-      runable-analytics-plugin.ts
-    src/
-      api/
-        index.ts             Hono routes (.basePath('api')) + AppType export
-        database/
-          index.ts           Database client (Turso/LibSQL)
-          schema.ts          Drizzle schema
-      web/
-        main.tsx             App entry
-        app.tsx              Root component + Wouter routing
-        pages/               Page components
-        components/          UI components
-        hooks/
-          use-desktop.ts     Desktop detection
-        lib/
-          api.ts             Typed API client (hono client)
-          desktop.ts         Electron API types
-          utils.ts           Shared utilities
-        styles.css           Tailwind CSS entry
-  mobile/                    Expo + React Native + expo-router
-    app/                     File-based routing
-    lib/
-      api.ts                 Typed API client
-  desktop/                   Electron shell (loads web app from server)
-    electron/
-      main.ts                Main process + IPC handlers
-      preload.ts             contextBridge API
-    vite.config.ts           Vite config
-```
+## Local setup
 
-## Environment Variables
-
-Secrets and credentials live in `.env` at the project root (gitignored). Vite's `loadEnv` loads them into `process.env` at dev/build time (configured in `packages/web/vite.config.ts`). In API code (Hono), use `process.env.YOUR_VAR`. In browser code, only `VITE_`-prefixed vars are exposed via `import.meta.env.VITE_YOUR_VAR`. Drizzle scripts use `bun --env-file=../../.env` to load env vars directly.
-
-## Desktop UI
-
-The desktop app has no separate renderer by default. It loads the web app from `packages/web`; desktop-specific UI should live in `packages/web/src/web/` and be gated with `useDesktop()` / `window.electronAPI`. Keep `packages/desktop` for Electron window setup, menus/tray/shortcuts, IPC handlers, native OS APIs, and packaging. Only add a separate desktop renderer when the product intentionally needs a different desktop-only UI architecture.
-
-## Servers
-
-Dev servers are started and managed automatically — no need to run them manually.
-
-## Database
+1. Install [Bun](https://bun.sh/).
+2. Copy `.env.template` to `.env` and add the required credentials.
+3. Install and build:
 
 ```sh
-cd packages/web
-bun run db:push        # Push schema to database
-bun run db:generate    # Generate migration files
-bun run db:migrate     # Run migrations
-bun run db:studio      # Open Drizzle Studio
+bun install --frozen-lockfile
+bun run build:web
 ```
+
+Run the production server:
+
+```sh
+bun run start:web
+```
+
+The server uses `PORT` and binds to `0.0.0.0`. Check `/api/health` for a deployment health check.
+
+## Runtime services
+
+The site is dynamic and requires:
+
+- Turso/libSQL for published projects, editable site content, custom sections, admin settings, and contact messages.
+- S3-compatible storage (currently Cloudflare R2) for media uploaded through `/admin`.
+- Resend for contact-form email delivery. Messages are still stored in the database if email delivery is unavailable.
+- `BETTER_AUTH_SECRET` for signed admin sessions and `ADMIN_PASSWORD` as the initial admin password. A password saved through `/admin` takes precedence.
+
+Runable-specific analytics, editor feedback, configuration files, and URLs have been removed. No Runable credential is required.
+
+## Deploy on Render
+
+`Dockerfile` and `render.yaml` define a GitHub-driven Render web service. Create the service from the Blueprint, enter each `sync: false` secret when prompted, and verify the generated `onrender.com` URL before changing DNS.
+
+Do not commit `.env`. The Docker build explicitly excludes it.
+
+## Custom domain cutover
+
+Keep the current Runable deployment live while testing the new host. After the replacement passes the checks below, add both `carlospicardo.com` and `www.carlospicardo.com` to the new service, apply only the DNS records supplied by the host, wait for TLS and domain verification, and test again on the custom domain.
+
+Required checks:
+
+- `/` loads on desktop and mobile.
+- `/admin` opens and accepts the intended password.
+- `/api/health`, `/api/songs`, and `/api/custom-sections` respond successfully.
+- Existing uploaded cover art loads through `/api/media/...`.
+- The contact form stores a message and sends email.
+- `/api/epk` downloads a valid PDF.
+- Spotify embeds, navigation anchors, theme switching, project modals, and external links work.
+
+Only after those checks pass should the Runable plan be downgraded.

@@ -3,6 +3,12 @@ export interface MusicProject {
   description: string;
   roles: string[];
   image: string;
+  spotify?: string;
+  youtube?: string;
+  /** External public link (e.g. studio session, unreleased preview). */
+  link?: string;
+  /** Optional custom label for the external link button. */
+  linkLabel?: string;
 }
 
 export interface Project {
@@ -19,6 +25,8 @@ export const musicProjects: MusicProject[] = [
       "Written, Produced, Recorded & Mixed by me. Met many incredible people during the process that helped me.",
     roles: ["Artista", "Producer", "Recording Engineer", "Mixing Engineer", "Compositor"],
     image: "/images/projects/perdoname-hermano.jpg",
+    spotify: "6dw04fT3QQrVVtTPzkeBXC",
+    youtube: "4MM2SRy6Joo",
   },
   {
     title: "La Voz de las Nubes",
@@ -26,6 +34,8 @@ export const musicProjects: MusicProject[] = [
       "This was the first time I've ever fully produced, recorded and mixed a whole song of mine.",
     roles: ["Artista", "Producer", "Mixing Engineer", "Recording Engineer"],
     image: "/images/projects/la-voz-de-las-nubes.jpg",
+    spotify: "0EnAJhYODTNBudub9GB7m5",
+    youtube: "iyY41haaiHE",
   },
   {
     title: "BAD BITCH — Song for Bruno Mars",
@@ -40,6 +50,8 @@ export const musicProjects: MusicProject[] = [
       "Recording Engineer for the main instruments for the song like Acoustic guitars, drums, vocals and mixing.",
     roles: ["Recording Engineer"],
     image: "/images/projects/a-traves-del-cristal.jpg",
+    spotify: "6zqTFdvLoNi76GCD84VOsM",
+    youtube: "gzo-VZtAObU",
   },
   {
     title: "Todo Ha Cambiado — Javi Chapela",
@@ -47,12 +59,15 @@ export const musicProjects: MusicProject[] = [
       "Recording Engineer of all the Acoustic Guitars, Drums and Vocals.",
     roles: ["Recording Engineer"],
     image: "/images/projects/todo-ha-cambiado.jpg",
+    spotify: "3PXtc85g1MWi34jgMx5qyZ",
+    youtube: "ex4BXKwdP2U",
   },
   {
     title: "Do You Miss Me — Diogo Oliveira",
     description: "Musical/executive producer, recording & mixing engineer.",
     roles: ["Producer", "Recording Engineer", "Mixing Engineer"],
     image: "/images/projects/do-you-miss-me.jpg",
+    spotify: "15PkOIVhwFfRvWH84fE899",
   },
   {
     title: "Aislado",
@@ -60,6 +75,8 @@ export const musicProjects: MusicProject[] = [
       "Songwriter, producer and editor of the song. Involved in all the technical stages of the song.",
     roles: ["Artista", "Producer", "Recording Engineer"],
     image: "/images/projects/aislado.jpg",
+    spotify: "7uA5K87CHdkPZ1WwuACZYV",
+    youtube: "c6tdHGfmI3I",
   },
   {
     title: "Auténtica Pareja",
@@ -67,6 +84,8 @@ export const musicProjects: MusicProject[] = [
       "Songwriter, producer, recording and mixing engineer of the song.",
     roles: ["Mixing Engineer", "Producer", "Artista", "Compositor"],
     image: "/images/projects/autentica-pareja.jpg",
+    spotify: "5QY3j1l6XdKIRU8MGGRtHN",
+    youtube: "sy4jUJY0xqY",
   },
   {
     title: "Diogo Oliveira",
@@ -88,6 +107,7 @@ export const musicProjects: MusicProject[] = [
       "Executive producer to a young talent. Involved in all of the stages.",
     roles: ["Executive Producer", "Manager", "Mixing Engineer", "Recording Engineer"],
     image: "/images/projects/wyacotta.jpg",
+    spotify: "50i0qrCEJqGYZy3OJfdAPN",
   },
 ];
 

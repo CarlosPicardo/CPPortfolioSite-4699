@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { AnimatedSection } from "./animated-section";
+import { useContent } from "../lib/content";
+import { SOCIALS_DEFAULT, CONTACT_DEFAULT } from "../content/defaults";
+import { useI18n, useField } from "../lib/i18n";
 
 const socials = [
   {
     name: "Spotify",
-    url: "https://open.spotify.com/",
+    url: "https://open.spotify.com/artist/4Opx9PV9kDvPTsNAsFERdW",
     color: "#1DB954",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -25,7 +29,7 @@ const socials = [
   },
   {
     name: "YouTube",
-    url: "https://www.youtube.com/",
+    url: "https://www.youtube.com/@carlos.picardo",
     color: "#FF0000",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -35,7 +39,7 @@ const socials = [
   },
   {
     name: "TikTok",
-    url: "https://www.tiktok.com/@carlospicardo75",
+    url: "https://www.tiktok.com/@carlospicardo",
     color: "#00F2EA",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -45,9 +49,88 @@ const socials = [
   },
 ];
 
-export function Connect() {
+function ContactForm() {
+  const { t } = useI18n();
+  const { data: cc = CONTACT_DEFAULT } = useContent("contact", CONTACT_DEFAULT);
+  const f = useField(cc);
+  const [form, setForm] = useState({ name: "", email: "", subject: "", body: "", website: "" });
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.body) return;
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("sent");
+      setForm({ name: "", email: "", subject: "", body: "", website: "" });
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const inp =
+    "w-full bg-foreground/[0.04] border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none transition-colors";
+
   return (
-    <section id="connect" className="py-32 relative">
+    <form onSubmit={submit} className="mx-auto mt-16 max-w-xl text-left" style={{ fontFamily: "var(--font-body)" }}>
+      <p className="text-primary text-xs uppercase tracking-[0.3em] mb-3 text-center">{cc.eyebrow}</p>
+      <h3 className="text-3xl md:text-4xl font-bold mb-3 text-center" style={{ fontFamily: "var(--font-display)" }}>
+        {cc.heading}
+      </h3>
+      <p className="text-muted-foreground text-sm text-center mb-8 max-w-md mx-auto">{f("body")}</p>
+      {status === "sent" ? (
+        <div className="rounded-xl border border-primary/40 bg-primary/10 p-6 text-center text-foreground">
+          {t("contact.sent")}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input className={inp} placeholder={t("contact.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <input className={inp} type="email" placeholder={t("contact.email")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          </div>
+          <input className={inp} placeholder={t("contact.subject")} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
+          <textarea className={inp + " min-h-[120px] resize-y"} placeholder={t("contact.message")} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} required />
+          {/* honeypot — hidden from humans, bots fill it */}
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            className="absolute left-[-9999px] h-0 w-0 opacity-0"
+            aria-hidden="true"
+            value={form.website}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
+          />
+          <button
+            type="submit"
+            disabled={status === "sending"}
+            className="w-full rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+          >
+            {status === "sending" ? t("contact.sending") : cc.buttonLabel || t("contact.send")}
+          </button>
+          {status === "error" && <p className="text-red-400 text-xs text-center">{t("contact.error")}</p>}
+        </div>
+      )}
+    </form>
+  );
+}
+
+export function Connect() {
+  const { t } = useI18n();
+  const epkLabel = t("epk.download");
+  const { data: c = SOCIALS_DEFAULT } = useContent("socials", SOCIALS_DEFAULT);
+  const fc = useField(c);
+  const resolved = socials.map((s) => {
+    const key = s.name.toLowerCase() as keyof typeof SOCIALS_DEFAULT;
+    const url = c[key];
+    return url ? { ...s, url } : s;
+  });
+  return (
+    <section id="connect" className="py-20 relative">
       <div className="max-w-[1200px] mx-auto px-6">
         <AnimatedSection>
           <p
@@ -72,18 +155,18 @@ export function Connect() {
             className="text-muted-foreground text-lg text-center max-w-xl mx-auto mb-16"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            Follow my journey as a music producer and stay up to date with new releases, studio sessions, and creative projects.
+            {fc("connectIntro")}
           </p>
         </AnimatedSection>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-          {socials.map((s, i) => (
+          {resolved.map((s, i) => (
             <AnimatedSection key={s.name} delay={0.15 * (i + 1)}>
               <a
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="card-lift bg-card border border-white/5 rounded-lg p-6 flex flex-col items-center gap-4 group hover:border-white/20 transition-all duration-500"
+                className="card-lift bg-card border border-border rounded-lg p-6 flex flex-col items-center gap-4 group hover:border-foreground/20 transition-all duration-500"
               >
                 <div
                   className="transition-all duration-500 text-muted-foreground group-hover:scale-110"
@@ -105,22 +188,28 @@ export function Connect() {
           ))}
         </div>
 
-        {/* Spotify embed section */}
-        <AnimatedSection delay={0.5}>
-          <div className="mt-20 max-w-xl mx-auto">
-            <iframe
-              style={{ borderRadius: "12px" }}
-              src="https://open.spotify.com/embed/playlist/6trQ9txMRaGwS9rtSGr9mS?utm_source=generator&theme=0"
-              width="100%"
-              height="152"
-              frameBorder="0"
-              allowFullScreen
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy"
-              title="Spotify Playlist"
-            />
+        <AnimatedSection delay={0.25}>
+          <div className="mt-14 flex justify-center">
+            <a
+              href="/api/epk"
+              download="Carlos-Picardo-Press-Kit.pdf"
+              className="group inline-flex items-center gap-3 rounded-full border border-border bg-foreground/[0.03] px-7 py-3.5 text-sm font-medium text-foreground transition-all duration-500 hover:border-primary/60 hover:bg-primary/5"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-primary transition-transform duration-500 group-hover:translate-y-0.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span className="uppercase tracking-[0.18em]">{epkLabel}</span>
+            </a>
           </div>
         </AnimatedSection>
+
+        <AnimatedSection delay={0.3}>
+          <ContactForm />
+        </AnimatedSection>
+
       </div>
     </section>
   );
